@@ -1,0 +1,10 @@
+name: 16sdb_app
+title:
+username:
+account: genome-informatics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 616094
+bundleId: 1761231
+url: https://genome-informatics.shinyapps.io/16sdb_app/
+when: 1544718050.21767
