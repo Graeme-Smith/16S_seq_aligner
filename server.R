@@ -5,7 +5,9 @@ library(ggtree)
 library(phangorn)
 library(msa)
 library(ggplot2)
+library(reshape2)
 
+# 
 seq_df <-
   read.csv(
     "shiny_app_data.csv",
@@ -13,70 +15,94 @@ seq_df <-
     sep = ","
   )
 
+# Function to perform multiple alignment
 aligneR <- function(selected_df) {
-  # session$sendCustomMessage(type = 'testmessage', message = type(selected_df))
-  dna2 <- DNAStringSet(selected_df$full_seq)
-  names(dna2) <-paste0(selected_df$genus_species, "_", selected_df$gi_number)
-  selected_alignment <- msa(dna2)
-  # my_align <- msaConvert(selected_alignment, "phangorn::phyDat")
-  # tmpFile <- tempfile(pattern="msa", tmpdir=".", fileext=".pdf")
-  # msa_pdf <- msaPrettyPrint(my_align, file="temp_msa.pdf", output="pdf",
-  #                showNames="left", showNumbering="none", showLogo="top",
-  #                showConsensus="bottom", logoColors="rasmol",
-  #                verbose=FALSE, askForOverwrite=FALSE)
-  # dm <- dist.ml(my_align)
-  # treeUPGMA <- upgma(dm)
-  # my_tree <- ggtree(treeUPGMA) + geom_tiplab() + ggplot2::xlim(0, 0.005)
+  selected_dna <- DNAStringSet(selected_df$full_seq)
+  names(selected_dna) <-paste0(selected_df$genus_species, "_", selected_df$gi_number)
+  selected_alignment <- msa(selected_dna, type = "DNA")
   return(selected_alignment)
 }
 
-tree_makeR <- function(alignment) {
+# Function to return distance matrix
+dist_matrixR <- function(alignment){
   my_align <- msaConvert(alignment, "phangorn::phyDat")
-  dm <- dist.ml(my_align)
+  dm <- dist.ml(my_align) 
+  return(dm)
+}
+
+# Function to return tree
+tree_makeR <- function(dm) {
   treeUPGMA <- upgma(dm)
-  my_tree <- ggtree(treeUPGMA) + geom_tiplab() + ggplot2::xlim(0, 0.005)
+  my_tree <- ggtree(treeUPGMA) + geom_tiplab()#  + xlim(0, 0.1)
   return(my_tree)
 }
 
-
 RV <- reactiveValues(data = seq_df)
-library(Biostrings)
 
+# Interactive elements ###########################################################
 function(input, output, session) {
+  
   output$selection <- renderPrint({
     input$mychooser[2]
   })
+  
   output$table <- DT::renderDataTable({
     DT::datatable(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
   })
-  output$plot <- renderPlot({
-    plot(cars, type = input$plotType)
+
+# Analysis ###########################################################
+  
+
+  
+  pp <- eventReactive(input$runAll, {
+    message("calculating MSA...")
+    seq_alignment <- aligneR(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
+    message("Finished calculating MSA...")
+    message("calculating distance matrix...")
+    distance_matrix <- dist_matrixR(seq_alignment)
+    message("Finished calculating distance matrix...")
+    message("calculating tree...")
+    phylo_tree <- tree_makeR(distance_matrix)
+    message("Finished calculating tree...")
+    message(is.ggplot(phylo_tree))
+    return(phylo_tree)
+  }) 
+ 
+  output$treePlot <- renderPlot({
+    pp()
   })
-  output$summary <- renderPrint({
-    summary(cars)
+  
+  bb <- eventReactive(input$runAll, {
+    message("calculating MSA...")
+    seq_alignment <- aligneR(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
+    message("Finished calculating MSA...")
+    message("calculating distance matrix...")
+    distance_matrix <- dist_matrixR(seq_alignment)
+    message("Finished calculating distance matrix...")
+    return(distance_matrix)
+  }) 
+  
+  output$dm_heatmap <- renderPlot({
+    library(lattice) 
+    levelplot(as.matrix(bb()), col.regions = heat.colors(100)[length(heat.colors(100)):1], scales=list(x=list(rot=90)))
+    
   })
   
-  
-  
-  # MA <- observeEvent(input$goButton, {
-  #  aligneR(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
-  # })
-  
-  output$goButton = downloadHandler(
-    filename = 'myreport.pdf',
-    content = function(file) {
-      msaPrettyPrint(
-        aligneR(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
-        , file = 'myreport.pdf'
-        , output="pdf"
-        , showNames="left"
-        , showLogo="top"
-        , consensusColor="BlueRed"
-        , logoColors="accessible area"
-        , askForOverwrite=FALSE)
-      file.rename("myreport.pdf", file) # move pdf to file for downloading
-    },
-    contentType = 'application/pdf'
-  )
+  # output$goButton = downloadHandler(
+  #   filename = 'myreport.pdf',
+  #   content = function(file) {
+  #     msaPrettyPrint(
+  #       aligneR(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
+  #       , file = 'myreport.pdf'
+  #       , output="pdf"
+  #       , showNames="left"
+  #       , showLogo="top"
+  #       , consensusColor="BlueRed"
+  #       , logoColors="accessible area"
+  #       , askForOverwrite=FALSE)
+  #     file.rename("myreport.pdf", file) # move pdf to file for downloading
+  #   },
+  #   contentType = 'application/pdf'
+  # )
   
 }

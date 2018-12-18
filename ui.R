@@ -14,12 +14,12 @@ seq_df <-
     sep = ","
   )
 genus_names <- unique(seq_df$genus)
-RV <- reactiveValues(data = seq_df)
 
 navbarPage(
   "Query 16S rRNA Database",
   tabPanel(
     "Select Sequences",
+    titlePanel("Select Sequences"),
     chooserInput(
       "mychooser",
       "Available 16S Sequences",
@@ -29,29 +29,33 @@ navbarPage(
       size = 10,
       multiple = TRUE
     ),
-    downloadButton("goButton", "Run Analysis"),
-    p(
-      "Click the button to calculate Multiple Sequence Alignments and phylogeny for selected sequences."
-    )
+    actionButton("runAll", label="Run Analysis"),
+    p("Click the button to calculate Multiple Sequence Alignments and phylogeny for selected sequences.")
   ),
   tabPanel("Data",
-           DT::dataTableOutput("table")),
+           titlePanel("Selected data"),
+           DT::dataTableOutput("table")
+           ),
+  
   tabPanel("Multiple Sequence Alignment",
            verbatimTextOutput("selection"),
            tags$iframe(style="height:600px; width:100%", 
                        src="shiny_placeholder.pdf")
                        #src="shiny_placeholder.pdf")
   ),
+  tabPanel("Distance Matrix",
+           titlePanel("Visualise Distance Matrix"),
+           mainPanel(plotOutput("dm_heatmap"))
+  ),
   tabPanel("Phylogenetic Tree",
+           titlePanel("Visualise Phylogentic tree"),
            sidebarLayout(
              sidebarPanel(
-               radioButtons("plotType", "Plot Type",
-                            c("ggTree" = "p", "MSA" = "l")),
-               tags$head(tags$script(src = "message-handler.js")),
                actionButton("pdfButton", "Download PDF")
              ),
-             mainPanel(plotOutput("plot"))
+             mainPanel(plotOutput("treePlot"))
            )),
+
   tabPanel("Summary Metrics",
            "Place holder for summary metrics"
   ),
