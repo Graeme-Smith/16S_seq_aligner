@@ -33,7 +33,7 @@ dist_matrixR <- function(alignment){
 # Function to return tree
 tree_makeR <- function(dm) {
   treeUPGMA <- upgma(dm)
-  my_tree <- ggtree(treeUPGMA) + geom_tiplab()#  + xlim(0, 0.1)
+  my_tree <- ggtree(treeUPGMA) + geom_tiplab()  + xlim(0, 0.6)
   return(my_tree)
 }
 
@@ -85,9 +85,12 @@ function(input, output, session) {
   output$dm_heatmap <- renderPlot({
     library(lattice) 
     levelplot(as.matrix(bb()), col.regions = heat.colors(100)[length(heat.colors(100)):1], scales=list(x=list(rot=90)))
-    
   })
   
+  
+  output$dm_table <- DT::renderDataTable({
+    DT::datatable(as.matrix(bb()))
+  })
   # output$goButton = downloadHandler(
   #   filename = 'myreport.pdf',
   #   content = function(file) {

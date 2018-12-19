@@ -45,7 +45,8 @@ navbarPage(
   ),
   tabPanel("Distance Matrix",
            titlePanel("Visualise Distance Matrix"),
-           mainPanel(plotOutput("dm_heatmap"))
+           mainPanel(plotOutput("dm_heatmap"),
+                     DT::dataTableOutput("dm_table"))
   ),
   tabPanel("Phylogenetic Tree",
            titlePanel("Visualise Phylogentic tree"),
