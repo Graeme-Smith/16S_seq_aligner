@@ -91,21 +91,22 @@ function(input, output, session) {
   output$dm_table <- DT::renderDataTable({
     DT::datatable(as.matrix(bb()))
   })
-  # output$goButton = downloadHandler(
-  #   filename = 'myreport.pdf',
-  #   content = function(file) {
-  #     msaPrettyPrint(
-  #       aligneR(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
-  #       , file = 'myreport.pdf'
-  #       , output="pdf"
-  #       , showNames="left"
-  #       , showLogo="top"
-  #       , consensusColor="BlueRed"
-  #       , logoColors="accessible area"
-  #       , askForOverwrite=FALSE)
-  #     file.rename("myreport.pdf", file) # move pdf to file for downloading
-  #   },
-  #   contentType = 'application/pdf'
-  # )
+  
+  output$downloadPDF = downloadHandler(
+    filename = 'myreport.pdf',
+    content = function(file) {
+      msaPrettyPrint(
+        aligneR(RV$data[seq_df$genus %in% unlist(input$mychooser[2]),])
+        , file = 'myreport.pdf'
+        , output="pdf"
+        , showNames="left"
+        , showLogo="top"
+        , consensusColor="BlueRed"
+        , logoColors="accessible area"
+        , askForOverwrite=FALSE)
+      file.rename("myreport.pdf", file) # move pdf to file for downloading
+    },
+    contentType = 'application/pdf'
+  )
   
 }

@@ -39,9 +39,9 @@ navbarPage(
   
   tabPanel("Multiple Sequence Alignment",
            verbatimTextOutput("selection"),
-           tags$iframe(style="height:600px; width:100%", 
-                       src="shiny_placeholder.pdf")
-                       #src="shiny_placeholder.pdf")
+           downloadButton('downloadPDF')
+           # tags$iframe(style="height:600px; width:100%", 
+           #             src="shiny_placeholder.pdf")
   ),
   tabPanel("Distance Matrix",
            titlePanel("Visualise Distance Matrix"),
